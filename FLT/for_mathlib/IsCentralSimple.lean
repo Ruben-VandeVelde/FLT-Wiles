@@ -5,6 +5,7 @@ Authors: Kevin Buzzard
 -/
 
 import Mathlib.Algebra.Quaternion -- probably get away with less
+import Mathlib.Data.Complex.Basic
 
 
 /-!
@@ -48,55 +49,94 @@ theorem RingCon.sum {R : Type u} [AddCommMonoid R] [Mul R] {ι : Type v} {s : Fi
         intro i hi
         exact h i (Finset.mem_insert_of_mem hi)
 
+instance RingCon.instNontrivial {D : Type*} [Add D] [Mul D] [Nontrivial D] :
+    Nontrivial (RingCon D) where
+  exists_pair_ne := by
+    use ⊥, ⊤
+    obtain ⟨x, y, ne⟩ := exists_pair_ne D
+    apply_fun (· x y)
+    simp [ne]
+
+lemma aux2 (α : Type*) [Ring α] (r : RingCon α) (h' : (∃ a, ¬(r 0 a ↔ a = 0)) → r 0 1) :
+    r = ⊥ ∨ r = ⊤ := by
+  obtain h | h := _root_.forall_or_exists_not (fun x ↦ r 0 x ↔ x = 0)
+  · left
+    apply RingCon.ext
+    intro x y
+    have : r x y ↔ r 0 (y - x) := by
+      constructor
+      · convert RingCon.add r (r.refl (-x)) using 1
+        rw [neg_add_self, sub_eq_add_neg, add_comm]
+      · convert RingCon.add r (r.refl x) using 1
+        rw [add_sub_cancel, add_zero]
+    rw [this, h, sub_eq_zero, eq_comm, RingCon.coe_bot]
+  · right
+    apply RingCon.ext fun y z => ?_
+    simp only [RingCon.coe_top, Pi.top_apply, Prop.top_eq_true, iff_true]
+    have := h' h
+    have : r y z ↔ r 0 (z - y) := by
+      constructor
+      · convert RingCon.add r (r.refl (-y)) using 1
+        rw [neg_add_self, sub_eq_add_neg, add_comm]
+      · convert RingCon.add r (r.refl y) using 1
+        rw [add_sub_cancel, add_zero]
+    suffices ∀ a : α, r 0 a by
+      rw [‹r y z ↔ _›]
+      apply this
+    intro a
+    simpa using r.mul (h' h) (r.refl a)
+
+lemma aux (α : Type*) [DivisionRing α] (r : RingCon α): r = ⊥ ∨ r = ⊤ := by
+  apply aux2
+  intro ⟨x, hx⟩
+  have x_ne_zero : x ≠ 0 := by
+    rintro rfl
+    simp [eq_true (r.refl 0)] at hx
+  have r_zero_x : r 0 x := by tauto
+  simpa [x_ne_zero] using r.mul r_zero_x (r.refl x⁻¹)
+
+
+theorem Field.isCentralSimple {α : Type*} [Field α] : IsCentralSimple α α where
+  is_central := by
+    simp?
+  is_simple.eq_bot_or_eq_top r := by
+    apply aux
+
+theorem Complex.isCentralSimple : IsCentralSimple ℂ ℂ where
+  is_central := by
+    simp?
+  is_simple.eq_bot_or_eq_top r := by
+    apply aux
+
 open Matrix in
-theorem MatrixRing.isCentralSimple (ι : Type v) (hι : Fintype ι) (hnonempty : Nonempty ι) [DecidableEq ι] :
+theorem MatrixRing.isCentralSimple (ι : Type v) (hι : Fintype ι) [Nonempty ι] [DecidableEq ι] :
     IsCentralSimple K (Matrix ι ι K) where
   is_central d hd := by
     rw [Subring.mem_center_iff] at hd
     convert mem_range_scalar_of_commute_stdBasisMatrix (M := d) fun i j hij => hd _
     simp_rw [Set.mem_range, eq_comm, algebraMap_eq_diagonal, Pi.algebraMap_def,
       Algebra.id.map_eq_self, scalar_apply]
-  is_simple.exists_pair_ne := by
-    use ⊥, ⊤
-    apply_fun (· 0 1)
-    simp
   is_simple.eq_bot_or_eq_top := by
     intro r
-    obtain h | h := _root_.forall_or_exists_not (fun x ↦ r 0 x ↔ x = 0)
-    · left
-      apply RingCon.ext
-      intro x y
-      have : r x y ↔ r 0 (y - x) := by
-        constructor
-        · convert RingCon.add r (r.refl (-x)) using 1
-          rw [neg_add_self, sub_eq_add_neg, add_comm]
-        · convert RingCon.add r (r.refl x) using 1
-          rw [add_sub_cancel, add_zero]
-      rw [this, h, sub_eq_zero, eq_comm, RingCon.coe_bot]
-    · right
-      obtain ⟨x, hx⟩ := h
-      have x_ne_zero : x ≠ 0 := by
-        rintro rfl
-        simp [eq_true (r.refl 0)] at hx
-      have r_zero_x : r 0 x := by tauto
-      have : ∃ i j, x i j ≠ 0 := by simpa using x_ne_zero ∘ Matrix.ext
-      obtain ⟨i, j, hij⟩ := this
-      have (k : ι) (_ : k ∈ Finset.univ) :
-          r 0 ((stdBasisMatrix k i 1) * x * (stdBasisMatrix j k 1)) := by
-        simpa using
-          r.mul (r.mul (r.refl (stdBasisMatrix k i 1)) r_zero_x) (r.refl (stdBasisMatrix j k 1))
-      have r_zero_sum := RingCon.sum this
-      have sum_eq_scalar :
-          ∑ k, (stdBasisMatrix k i 1) * x * (stdBasisMatrix j k 1) = scalar ι (x i j) := by
-        ext i' j'
-        simp [diagonal, sum_apply, mul_apply, stdBasisMatrix, ite_and, eq_comm]
-      have r_zero_one : r 0 1 := by
-        simpa [hij, Finset.sum_const_zero, sum_eq_scalar] using
-          r.mul r_zero_sum (r.refl (scalar ι (x i j)⁻¹))
-      have forall_r_zero a : r 0 a := by simpa using r.mul r_zero_one (r.refl a)
-      have forall_forall_r a b : r a b := by simpa using r.add (forall_r_zero (b - a)) (r.refl a)
-      apply RingCon.ext
-      simp [forall_forall_r]
+    apply aux2
+    intro ⟨x, hx⟩
+    have x_ne_zero : x ≠ 0 := by
+      rintro rfl
+      simp [eq_true (r.refl 0)] at hx
+    have r_zero_x : r 0 x := by tauto
+    have : ∃ i j, x i j ≠ 0 := by simpa using x_ne_zero ∘ Matrix.ext
+    obtain ⟨i, j, hij⟩ := this
+    have (k : ι) (_ : k ∈ Finset.univ) :
+        r 0 ((stdBasisMatrix k i 1) * x * (stdBasisMatrix j k 1)) := by
+      simpa using
+        r.mul (r.mul (r.refl (stdBasisMatrix k i 1)) r_zero_x) (r.refl (stdBasisMatrix j k 1))
+    have r_zero_sum := RingCon.sum this
+    have sum_eq_scalar :
+        ∑ k, (stdBasisMatrix k i 1) * x * (stdBasisMatrix j k 1) = scalar ι (x i j) := by
+      ext i' j'
+      simp [diagonal, sum_apply, mul_apply, stdBasisMatrix, ite_and, eq_comm]
+    simpa [hij, Finset.sum_const_zero, sum_eq_scalar] using
+      r.mul r_zero_sum (r.refl (scalar ι (x i j)⁻¹))
 
 namespace IsCentralSimple
 
