@@ -153,25 +153,33 @@ it's not even well-defined if the map $A\to B$ isn't injective.
   \label{MulSemiringAction.CharacteristicPolynomial.M_eval_eq_zero}
   \lean{MulSemiringAction.CharacteristicPolynomial.M_eval_eq_zero}
   \uses{MulSemiringAction.CharacteristicPolynomial.M}
+  \leanok
   $M_b$ has $b$ as a root.
 \end{lemma}
-\begin{proof} Follows from the fact that $F_b$ has $b$ as a root.
+\begin{proof}
+  \leanok
+  Follows from the fact that $F_b$ has $b$ as a root.
 \end{proof}
 \begin{lemma}
   \label{MulSemiringAction.CharacteristicPolynomial.M_deg}
   \lean{MulSemiringAction.CharacteristicPolynomial.M_deg}
   \uses{MulSemiringAction.CharacteristicPolynomial.M}
+  \leanok
   $M_b$ has degree $n$.
 \end{lemma}
-\begin{proof} Exercise.
+\begin{proof}
+  \leanok
+  Exercise.
 \end{proof}
 \begin{lemma}
   \lean{MulSemiringAction.CharacteristicPolynomial.M_monic}
   \label{MulSemiringAction.CharacteristicPolynomial.M_monic}
   \uses{MulSemiringAction.CharacteristicPolynomial.M}
+  \leanok
   $M_b$ is monic.
 \end{lemma}
 \begin{proof}
+  \leanok
   Exercise.
 \end{proof}
 
@@ -180,9 +188,13 @@ it's not even well-defined if the map $A\to B$ isn't injective.
   \label{MulSemiringAction.CharacteristicPolynomial.isIntegral}
   \uses{MulSemiringAction.CharacteristicPolynomial.M,
     MulSemiringAction.CharacteristicPolynomial.M_monic}
+  \leanok
   $B/A$ is integral.
 \end{theorem}
-\begin{proof} Use $M_b$.
+\begin{proof}
+  \uses{MulSemiringAction.CharacteristicPolynomial.M_eval_eq_zero}
+  \leanok
+  Use $M_b$.
 \end{proof}
 
 \section{The extension $(B/Q)/(A/P)$.}

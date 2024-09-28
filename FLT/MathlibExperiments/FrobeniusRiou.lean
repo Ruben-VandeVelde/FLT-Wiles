@@ -135,17 +135,18 @@ section F_API
 variable [Finite G]
 
 theorem F_monic (b : B) : (F G b).Monic := by
-  rw [F_spec]
-  sorry -- finprodmonic
+  have := Fintype.ofFinite G
+  rw [F_spec, finprod_eq_prod_of_fintype]
+  exact monic_prod_of_monic _ _ (fun i _ => monic_X_sub_C (i • b))
 
 variable (G) in
-theorem F_degree (b : B) [Nontrivial B] : (F G b).degree = Nat.card G := by
-  unfold F
-  -- need (∏ᶠ fᵢ).degree = ∑ᶠ (fᵢ.degree)
-  -- then it should be easy
-  sorry
+theorem F_degree (b : B) [Nontrivial B] [NoZeroDivisors B] : (F G b).degree = Nat.card G := by
+  have := Fintype.ofFinite G
+  rw [F_spec, finprod_eq_prod_of_fintype, Polynomial.degree_prod]
+  simp only [degree_X_sub_C, Finset.sum_const, Finset.card_univ, Fintype.card_eq_nat_card,
+    nsmul_eq_mul, mul_one]
 
-theorem F_natdegree (b : B) [Nontrivial B] : (F G b).natDegree = Nat.card G := by
+theorem F_natdegree (b : B) [Nontrivial B] [NoZeroDivisors B] : (F G b).natDegree = Nat.card G := by
   rw [← degree_eq_iff_natDegree_eq_of_pos Nat.card_pos]
   exact F_degree G b
 
@@ -217,7 +218,8 @@ theorem M_deg_le (b : B) : (M hFull b).degree ≤ (F G b).degree := by
   apply le_trans (degree_monomial_le n _) ?_
   exact le_degree_of_mem_supp n hn
 
-variable [Nontrivial B] [Finite G]
+section
+variable [Nontrivial B] [NoZeroDivisors B] [Finite G]
 
 theorem M_coeff_card (b : B) :
     (M hFull b).coeff (Nat.card G) = 1 := by
@@ -238,12 +240,15 @@ theorem M_coeff_card (b : B) :
   · intro d _ hd
     exact coeff_monomial_of_ne (splitting_of_full hFull ((F G b).coeff d)) hd
 
-theorem M_deg_eq_F_deg (b : B) : (M hFull b).degree = (F G b).degree := by
+theorem M_deg_eq_F_deg [Nontrivial A] (b : B) : (M hFull b).degree = (F G b).degree := by
   apply le_antisymm (M_deg_le hFull b)
-  -- hopefully not too hard from previous two lemmas
-  sorry
+  rw [F_degree]
+  have := M_coeff_card hFull b
+  refine le_degree_of_ne_zero ?h
+  rw [this]
+  exact one_ne_zero
 
-theorem M_deg (b : B) : (M hFull b).degree = Nat.card G := by
+theorem M_deg [Nontrivial A] (b : B) : (M hFull b).degree = Nat.card G := by
   rw [M_deg_eq_F_deg hFull b]
   exact F_degree G b
 
@@ -255,10 +260,10 @@ theorem M_monic (b : B) : (M hFull b).Monic := by
   -- then the hypos say deg(M)<=n, coefficient of X^n is 1 in M
   have this4 : (M hFull b).natDegree ≤ (F G b).natDegree := natDegree_le_natDegree this1
   clear this1
-  -- Now it's just a logic puzzle. If deg(F)=n>0 then we
-  -- know deg(M)<=n and the coefficient of X^n is 1 in M
-  sorry
+  exact Polynomial.monic_of_natDegree_le_of_coeff_eq_one _ this4 this2
+end
 
+variable [Finite G]
 
 theorem M_spec (b : B) : ((M hFull b : A[X]) : B[X]) = F G b := by
   unfold M
@@ -268,15 +273,19 @@ theorem M_spec (b : B) : ((M hFull b : A[X]) : B[X]) = F G b := by
   simp_rw [finset_sum_coeff, ← lcoeff_apply, lcoeff_apply, coeff_monomial]
   aesop
 
-
+theorem M_spec' (b : B) : algebraMap A[X] B[X] (M hFull b) = F G b := M_spec _ b
 
 variable (hFull : ∀ (b : B), (∀ (g : G), g • b = b) → ∃ a : A, b = a)
 
 theorem M_eval_eq_zero (b : B) : (M hFull b).eval₂ (algebraMap A B) b = 0 := by
-  sorry -- follows from `F_eval_eq_zero`
+  have := M_spec' hFull b
+  apply_fun eval b at this
+  rw [F_eval_eq_zero] at this
+  rw [← this, eval₂_eq_eval_map]
+  rfl -- Not sure why this is true
 
 include hFull in
-theorem isIntegral : Algebra.IsIntegral A B where
+theorem isIntegral [Nontrivial B] [NoZeroDivisors B] : Algebra.IsIntegral A B where
   isIntegral b := ⟨M hFull b, M_monic hFull b, M_eval_eq_zero hFull b⟩
 
 end full_descent
@@ -293,7 +302,8 @@ variable {A : Type*} [CommRing A]
   {B : Type*} [CommRing B] [Algebra A B]
   {G : Type*} [Group G] [Finite G] [MulSemiringAction G B]
 
-theorem isIntegral_of_Full [Nontrivial B] (hFull : ∀ (b : B), (∀ (g : G), g • b = b) → ∃ a : A, b = a) :
+theorem isIntegral_of_Full [Nontrivial B] [NoZeroDivisors B]
+    (hFull : ∀ (b : B), (∀ (g : G), g • b = b) → ∃ a : A, b = a) :
     Algebra.IsIntegral A B where
   isIntegral b := ⟨M hFull b, M_monic hFull b, M_eval_eq_zero hFull b⟩
 
@@ -312,7 +322,7 @@ theorem Nontrivial_of_exists_prime {R : Type*} [CommRing R]
   apply Subsingleton.elim
 
 -- (Part a of Théorème 2 in section 2 of chapter 5 of Bourbaki Alg Comm)
-theorem part_a [SMulCommClass G A B]
+theorem part_a [NoZeroDivisors B] [SMulCommClass G A B]
     (hPQ : Ideal.comap (algebraMap A B) P = Ideal.comap (algebraMap A B) Q)
     (hFull' : ∀ (b : B), (∀ (g : G), g • b = b) → ∃ a : A, b = a) :
     ∃ g : G, Q = g • P := by
