@@ -53,7 +53,7 @@ In the next definition we write down a group homomorphism $\phi$ from $D_Q$ to $
 
 The theorem we want in this mini-project is
 \begin{theorem}
-  \label{Bourbaki52222.MulAction.stabilizer_surjective_of_action}
+  \label{Ideal.Quotient.stabilizerHom_surjective}?
   \uses{Bourbaki52222.stabilizer.toGaloisGroup}
   \leanok
   The map $g\mapsto \phi_g$ from $D_Q$ to $\Aut_K(L)$ defined above is surjective.
@@ -149,8 +149,8 @@ We start with a construction which is fundamental to everything,
 and which explains why we need $G$ to be finite.
 
 \begin{definition}
-  \label{MulSemiringAction.CharacteristicPolynomial.F}
-  \leanok
+  \label{MulSemiringAction.charpoly}
+  \mathlibok
   If $b\in B$ then define the \emph{characteristic polynomial}
   $F_b(X) \in B[X]$ of $b$ to be $\prod_{g\in G}(X-g\cdot b)$.
 \end{definition}
@@ -159,13 +159,13 @@ Clearly $F_b$ is a monic polynomial of degree $|G|$. In fact this isn't clear:
 if $B$ is the zero ring then $F_b=0$ has degree less than $|G|$.
 
 \begin{lemma}
-  \label{MulSemiringAction.CharacteristicPolynomial.F_degree}
-  \uses{MulSemiringAction.CharacteristicPolynomial.F}
-  \leanok
+  \label{MulSemiringAction.monic_charpoly}
+  \uses{MulSemiringAction.charpoly}
+  \mathlibok
   If $B$ is nontrivial then $F_b$ is monic.
 \end{lemma}
 \begin{proof}
-  \leanok
+  \mathlibok
   Obvious.
 \end{proof}
 
@@ -178,7 +178,7 @@ it's not even well-defined if the map $A\to B$ isn't injective.
 
 \begin{definition}
   \label{MulSemiringAction.CharacteristicPolynomial.M}
-  \uses{MulSemiringAction.CharacteristicPolynomial.F}
+  \uses{MulSemiringAction.charpoly}
   \leanok
   $M_b$ is any monic degree $|G|$ polynomial in $A[X]$ whose
   image in $B[X]$ is $F_b$.
@@ -217,14 +217,14 @@ it's not even well-defined if the map $A\to B$ isn't injective.
 \end{proof}
 
 \begin{theorem}
-  \label{MulSemiringAction.CharacteristicPolynomial.isIntegral}
-  \uses{MulSemiringAction.CharacteristicPolynomial.M}
-  \leanok
+  \label{Algebra.IsInvariant.isIntegral}
+  \uses{Algebra.IsInvariant.charpoly_mem_lifts}
+  \mathlibok
   $B/A$ is integral.
 \end{theorem}
 \begin{proof}
   \uses{MulSemiringAction.CharacteristicPolynomial.M_monic}
-  \leanok
+  \mathlibok
   Use $M_b$.
 \end{proof}
 
