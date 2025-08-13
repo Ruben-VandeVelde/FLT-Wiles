@@ -26,6 +26,7 @@ lemma forall_prod_iff {ι} {β : ι → Type*} (P : ∀ i, β i → Prop) [∀ i
     Nonempty.some inferInstance), fun H i y ↦ H _ _⟩
 
 -- Mathlib.RingTheory.Ideal.Quotient.Operations
+-- Unused, needs docs
 @[simps]
 def Ideal.idealQuotientEquiv {R : Type*} [CommRing R] (I : Ideal R) :
   Ideal (R ⧸ I) ≃ { J // I ≤ J } where
@@ -77,6 +78,7 @@ instance {R} [CommRing R] [TopologicalSpace R] [CompactSpace R] (I : Ideal R) :
     CompactSpace (R ⧸ I) :=
   Quotient.compactSpace
 
+-- [Mathlib.Topology.Algebra.Group.Basic]
 open Topology in
 @[to_additive]
 lemma IsTopologicalGroup.isInducing_of_nhds_one {G H : Type*} [Group G] [Group H]
@@ -90,6 +92,8 @@ lemma IsTopologicalGroup.isInducing_of_nhds_one {G H : Type*} [Group G] [Group H
   congr 1
   ext; simp
 
+-- import Mathlib.Topology.Algebra.OpenSubgroup
+-- import Mathlib.Topology.Separation.Profinite
 open Topology in
 @[to_additive]
 theorem exists_subgroup_isOpen_and_subset {α : Type*} [TopologicalSpace α]
@@ -101,15 +105,13 @@ theorem exists_subgroup_isOpen_and_subset {α : Type*} [TopologicalSpace α]
   obtain ⟨⟨G, hG⟩, hG'⟩ := IsTopologicalGroup.exist_openSubgroup_sub_clopen_nhds_of_one hK hxK
   exact ⟨G, hG, (hG'.trans hKU).trans hVU⟩
 
-@[simp]
-theorem TwoSidedIdeal.span_le' {α} [NonUnitalNonAssocRing α] {s : Set α} {I : TwoSidedIdeal α} :
-    span s ≤ I ↔ s ⊆ I :=
-  ⟨subset_span.trans, fun h _ hx ↦ mem_span_iff.mp hx I h⟩
+attribute [simp] TwoSidedIdeal.span_le
 
+-- Mathlib.RingTheory.TwoSidedIdeal.Operations
 @[simp]
 theorem TwoSidedIdeal.span_neg {α} [NonUnitalNonAssocRing α] (s : Set α) :
     TwoSidedIdeal.span (-s) = TwoSidedIdeal.span s := by
-  apply le_antisymm <;> rw [span_le']
+  apply le_antisymm <;> rw [span_le]
   · rintro x hx
     exact neg_neg x ▸ neg_mem _ (subset_span (s := s) hx)
   · rintro x hx
@@ -118,7 +120,7 @@ theorem TwoSidedIdeal.span_neg {α} [NonUnitalNonAssocRing α] (s : Set α) :
 @[simp]
 theorem TwoSidedIdeal.span_singleton_zero {α} [NonUnitalNonAssocRing α] :
     span {(0 : α)} = ⊥ :=
-  le_bot_iff.mp (span_le'.mpr (by simp))
+  le_bot_iff.mp (span_le.mpr (by simp))
 
 theorem TwoSidedIdeal.mem_span_singleton {α} [NonUnitalNonAssocRing α] {x : α} :
     x ∈ span {x} :=
@@ -132,17 +134,17 @@ def TwoSidedIdeal.leAddSubgroup {α} [NonUnitalNonAssocRing α] (G : AddSubgroup
     (by simp [-coe_mk, G.zero_mem])
     (fun {x y} hx hy ↦ by
       have : span {x + y} ≤ span {x} ⊔ span {y} :=
-        span_le'.mpr <| Set.singleton_subset_iff.mpr <|
+        span_le.mpr <| Set.singleton_subset_iff.mpr <|
           mem_sup.mpr ⟨x, mem_span_singleton, y, mem_span_singleton, rfl⟩
       refine subset_trans (c := (G : Set α)) this fun a ha ↦ ?_
       obtain ⟨a₁, ha₁, a₂, ha₂, rfl⟩ := mem_sup.mp ha
       exact G.add_mem (hx ha₁) (hy ha₂))
     (fun {x} hx ↦ by simpa only [Set.mem_setOf_eq, ← Set.neg_singleton, TwoSidedIdeal.span_neg])
     (fun {x y} hy ↦ subset_trans (c := (G : Set α))
-      (TwoSidedIdeal.span_le'.mpr <| by
+      (TwoSidedIdeal.span_le.mpr <| by
         simpa using TwoSidedIdeal.mul_mem_left _ x y mem_span_singleton) hy)
     (fun {x y} hy ↦ subset_trans (c := (G : Set α))
-      (TwoSidedIdeal.span_le'.mpr <| by
+      (TwoSidedIdeal.span_le.mpr <| by
         simpa using TwoSidedIdeal.mul_mem_right _ x y mem_span_singleton) hy)
 
 lemma TwoSidedIdeal.leAddSubgroup_subset {α} [NonUnitalNonAssocRing α] (G : AddSubgroup α) :
