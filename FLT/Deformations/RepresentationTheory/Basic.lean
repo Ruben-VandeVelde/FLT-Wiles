@@ -260,17 +260,20 @@ lemma FramedGaloisRep.baseChange_map [IsTopologicalRing B]
     (ρ : FramedGaloisRep K A n) (f : A →+* B) (hf : Continuous f)
     (g : K →+* L) : (ρ.baseChange f hf).map g = (ρ.map g).baseChange f hf := rfl
 
+-- [Mathlib.LinearAlgebra.Matrix.Trace]
 lemma Matrix.map_trace {F α β n : Type*} [AddCommMonoid β] [AddCommMonoid α] [Fintype n]
     (M : Matrix n n α) (f : F) [FunLike F α β] [AddMonoidHomClass F α β] :
     (M.map f).trace = f M.trace :=
   (AddMonoidHom.map_trace f M).symm
 
+-- [Mathlib.LinearAlgebra.Matrix.Determinant.Basic]
 lemma Matrix.map_det {F α β n : Type*} [CommRing β] [CommRing α] [Fintype n]
     [DecidableEq n]
     (M : Matrix n n α) (f : F) [FunLike F α β] [RingHomClass F α β] :
     (M.map f).det = f M.det :=
   (RingHom.map_det (f : α →+* β) M).symm
 
+-- [Mathlib.LinearAlgebra.Trace]
 lemma LinearMap.trace_toLin' {R n : Type*} [CommSemiring R] [DecidableEq n]
     [Fintype n] (M : Matrix n n R) : LinearMap.trace _ _ M.toLin' = M.trace := by
   simp
