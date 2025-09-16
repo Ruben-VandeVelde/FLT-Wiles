@@ -21,8 +21,6 @@ lemma forall_mem_sup : (∀ x ∈ p ⊔ p', P x) ↔ (∀ x₁ ∈ p, ∀ x₂ �
 lemma exists_mem_sup : (∃ x ∈ p ⊔ p', P x) ↔ (∃ x₁ ∈ p, ∃ x₂ ∈ p', P (x₁ + x₂)) := by
   simp [mem_sup]
 
-@[simp, norm_cast]
-lemma coe_sup' : ↑(p ⊔ p') = (p : Set M) + (p' : Set M) := by
-  simp [coe_sup]
+attribute [simp, norm_cast] coe_sup
 
 end Submodule

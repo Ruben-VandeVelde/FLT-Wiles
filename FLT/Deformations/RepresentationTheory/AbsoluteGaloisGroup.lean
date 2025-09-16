@@ -83,6 +83,8 @@ lemma Field.absoluteGaloisGroup.lift_map (f : K →+* L) (σ : Γ L) (x : Kᵃˡ
   letI := (AlgebraicClosure.map f).toAlgebra
   exact AlgHom.restrictNormal_commutes _ _ _
 
+-- [Mathlib.NumberTheory.NumberField.InfinitePlace.Embeddings, Mathlib.RingTheory.Frobenius,
+-- Mathlib.RingTheory.Ideal.Norm.AbsNorm]
 instance finiteIndex_fixingSubgroup {K L : Type*} [Field K] [Field L] [Algebra K L]
     (E : IntermediateField K L) [FiniteDimensional K E] : E.fixingSubgroup.FiniteIndex := by
   let f : (L ≃ₐ[K] L) ⧸ E.fixingSubgroup → E →ₐ[K] L := Quotient.lift

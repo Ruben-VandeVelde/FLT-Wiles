@@ -24,4 +24,4 @@ theorem TensorProduct.AlgebraTensorModule.finiteEquivPi_symm_apply (R M N : Type
     (x : Fin (Module.finrank R M) → R) :
     (finiteEquivPi R M N).symm (fun i => algebraMap R N (x i)) =
       1 ⊗ₜ[R] (Module.Finite.equivPi R M).symm x := by
-  simp [Algebra.TensorProduct.piScalarRight_symm_apply_of_algebraMap, Finset.univ_sum_single]
+  simp [TensorProduct.piScalarRight_symm_algebraMap]

@@ -10,8 +10,8 @@ import FLT.Mathlib.Topology.Algebra.ContinuousAlgEquiv
 import FLT.Mathlib.Topology.Algebra.ContinuousMonoidHom
 import FLT.Mathlib.Topology.Algebra.Group.Quotient
 import FLT.Mathlib.Topology.Algebra.Module.ModuleTopology
-import FLT.Mathlib.NumberTheory.NumberField.Basic
 import Mathlib.NumberTheory.NumberField.AdeleRing
+import Mathlib.NumberTheory.NumberField.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Prod
 import Mathlib.RingTheory.DedekindDomain.FiniteAdeleRing
 import FLT.NumberField.FiniteAdeleRing
@@ -439,8 +439,10 @@ theorem Rat.InfiniteAdeleRing.exists_sub_norm_le_one (a : InfiniteAdeleRing ℚ)
   refine ⟨ringOfIntegersEquiv.symm x, fun v ↦ ?_⟩
   rw [Subsingleton.elim v v₀, InfiniteAdeleRing.algebraMap_apply,
     ← (isometry_extensionEmbeddingOfIsReal isReal_infinitePlace).norm_map_of_map_zero
-      (map_zero _), ringOfIntegersEquiv_symm_coe, map_sub, extensionEmbeddingOfIsReal_coe,
-    map_intCast, Real.norm_eq_abs, Int.self_sub_floor, Int.abs_fract]
+      (map_zero _),
+    eq_intCast, map_sub, extensionEmbeddingOfIsReal_coe, Real.norm_eq_abs]
+  simp only [map_intCast, x, σ]
+  rw [Int.self_sub_floor, Int.abs_fract]
   exact le_of_lt (Int.fract_lt_one _)
 
 instance (v : InfinitePlace K) : ProperSpace v.Completion :=

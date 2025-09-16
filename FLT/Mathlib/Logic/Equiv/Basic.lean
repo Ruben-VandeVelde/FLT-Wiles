@@ -1,5 +1,6 @@
 import Mathlib.Logic.Equiv.Basic
 
+-- #29706
 variable {α : Type*} {β : Type*} {f : α → β}
 
 /-- A family of equivalences `∀ a, γ₁ a ≃ γ₂ a` generates an equivalence between the product

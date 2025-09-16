@@ -94,6 +94,8 @@ lemma isMulRightInvariant_subtypeVal (μ : Measure G) [μ.IsMulRightInvariant]
   have hφ : MeasurableEmbedding H.subtype := MeasurableEmbedding.subtype_coe hH
   hφ.isMulRightInvariant_comap μ
 
+-- MORE IMPORTS NEEDED BELOW
+
 @[to_additive index_mul_addHaar_addSubgroup]
 lemma index_mul_haar_subgroup [H.FiniteIndex] (hH : MeasurableSet (H : Set G)) (μ : Measure G)
     [μ.IsMulLeftInvariant] : H.index * μ H = μ univ := by

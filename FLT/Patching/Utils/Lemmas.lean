@@ -9,18 +9,25 @@ import Mathlib.RingTheory.Localization.AtPrime.Basic
 import Mathlib.Data.SetLike.Fintype
 import Mathlib.RingTheory.Spectrum.Prime.Basic
 
-
+-- import Mathlib.Algebra.Group.Pi.Basic
+-- import Mathlib.Algebra.Group.Units.Defs
+-- Maybe Mathlib.Algebra.Ring.Units, Mathlib.Algebra.Group.Prod,
 lemma IsUnit.pi_iff {ι} {M : ι → Type*} [∀ i, Monoid (M i)] {x : Π i, M i} :
     IsUnit x ↔ ∀ i, IsUnit (x i) := by
   simp_rw [isUnit_iff_exists, funext_iff, ← forall_and]
   exact Classical.skolem (p := fun i y ↦ x i * y = 1 ∧ y * x i = 1).symm
 
+-- import Mathlib.Logic.Basic
+-- import Mathlib.Logic.Nonempty
+-- Maybe [Mathlib.Logic.Function.Basic]
 lemma forall_prod_iff {ι} {β : ι → Type*} (P : ∀ i, β i → Prop) [∀ i, Nonempty (β i)] :
     (∀ i : ι, ∀ (y : Π i, β i), P i (y i)) ↔ (∀ i y, P i y) :=
   letI := Classical.decEq
   ⟨fun H i y ↦ by simpa using H i (fun j ↦ if h : i = j then h ▸ y else
     Nonempty.some inferInstance), fun H i y ↦ H _ _⟩
 
+-- Mathlib.RingTheory.Ideal.Quotient.Operations
+-- Unused, needs docs
 @[simps]
 def Ideal.idealQuotientEquiv {R : Type*} [CommRing R] (I : Ideal R) :
   Ideal (R ⧸ I) ≃ { J // I ≤ J } where
@@ -72,6 +79,8 @@ instance {R} [CommRing R] [TopologicalSpace R] [CompactSpace R] (I : Ideal R) :
     CompactSpace (R ⧸ I) :=
   Quotient.compactSpace
 
+-- import Mathlib.Topology.Algebra.OpenSubgroup
+-- import Mathlib.Topology.Separation.Profinite
 open Topology in
 @[to_additive]
 theorem exists_subgroup_isOpen_and_subset {α : Type*} [TopologicalSpace α]
@@ -83,29 +92,31 @@ theorem exists_subgroup_isOpen_and_subset {α : Type*} [TopologicalSpace α]
   obtain ⟨⟨G, hG⟩, hG'⟩ := IsTopologicalGroup.exist_openSubgroup_sub_clopen_nhds_of_one hK hxK
   exact ⟨G, hG, (hG'.trans hKU).trans hVU⟩
 
-@[simp]
-theorem TwoSidedIdeal.span_le' {α} [NonUnitalNonAssocRing α] {s : Set α} {I : TwoSidedIdeal α} :
-    span s ≤ I ↔ s ⊆ I :=
-  ⟨subset_span.trans, fun h _ hx ↦ mem_span_iff.mp hx I h⟩
+-- #30209
+attribute [simp] TwoSidedIdeal.span_le
 
+-- #30209
 @[simp]
 theorem TwoSidedIdeal.span_neg {α} [NonUnitalNonAssocRing α] (s : Set α) :
     TwoSidedIdeal.span (-s) = TwoSidedIdeal.span s := by
-  apply le_antisymm <;> rw [span_le']
+  apply le_antisymm <;> rw [span_le]
   · rintro x hx
     exact neg_neg x ▸ neg_mem _ (subset_span (s := s) hx)
   · rintro x hx
     exact neg_neg x ▸ neg_mem _ (subset_span (Set.neg_mem_neg.mpr hx))
 
+-- #30209
 @[simp]
 theorem TwoSidedIdeal.span_singleton_zero {α} [NonUnitalNonAssocRing α] :
     span {(0 : α)} = ⊥ :=
-  le_bot_iff.mp (span_le'.mpr (by simp))
+  le_bot_iff.mp (span_le.mpr (by simp))
 
+-- #30209
 theorem TwoSidedIdeal.mem_span_singleton {α} [NonUnitalNonAssocRing α] {x : α} :
     x ∈ span {x} :=
   subset_span rfl
 
+-- Mathlib.RingTheory.TwoSidedIdeal.Operations?
 def TwoSidedIdeal.leAddSubgroup {α} [NonUnitalNonAssocRing α] (G : AddSubgroup α) :
     TwoSidedIdeal α :=
   .mk'
@@ -114,17 +125,17 @@ def TwoSidedIdeal.leAddSubgroup {α} [NonUnitalNonAssocRing α] (G : AddSubgroup
     (by simp [-coe_mk, G.zero_mem])
     (fun {x y} hx hy ↦ by
       have : span {x + y} ≤ span {x} ⊔ span {y} :=
-        span_le'.mpr <| Set.singleton_subset_iff.mpr <|
+        span_le.mpr <| Set.singleton_subset_iff.mpr <|
           mem_sup.mpr ⟨x, mem_span_singleton, y, mem_span_singleton, rfl⟩
       refine subset_trans (c := (G : Set α)) this fun a ha ↦ ?_
       obtain ⟨a₁, ha₁, a₂, ha₂, rfl⟩ := mem_sup.mp ha
       exact G.add_mem (hx ha₁) (hy ha₂))
     (fun {x} hx ↦ by simpa only [Set.mem_setOf_eq, ← Set.neg_singleton, TwoSidedIdeal.span_neg])
     (fun {x y} hy ↦ subset_trans (c := (G : Set α))
-      (TwoSidedIdeal.span_le'.mpr <| by
+      (TwoSidedIdeal.span_le.mpr <| by
         simpa using TwoSidedIdeal.mul_mem_left _ x y mem_span_singleton) hy)
     (fun {x y} hy ↦ subset_trans (c := (G : Set α))
-      (TwoSidedIdeal.span_le'.mpr <| by
+      (TwoSidedIdeal.span_le.mpr <| by
         simpa using TwoSidedIdeal.mul_mem_right _ x y mem_span_singleton) hy)
 
 lemma TwoSidedIdeal.leAddSubgroup_subset {α} [NonUnitalNonAssocRing α] (G : AddSubgroup α) :
@@ -205,16 +216,21 @@ instance (priority := 100) {α} [TopologicalSpace α] [DiscreteTopology α] :
     simpa using hs _ _ (isOpen_discrete {y}) (isOpen_discrete (s \ {y}))
       (by simp) ⟨y, by simpa⟩ ⟨x, by simp_all⟩⟩
 
+-- Mathlib.Order.OrderIsoNat
 lemma WellFoundedGT.exists_eq_sup {α} [CompleteLattice α] [WellFoundedGT α]
     (f : ℕ →o α) : ∃ i, f i = ⨆ i, f i := by
   obtain ⟨n, hn⟩ := wellFoundedGT_iff_monotone_chain_condition.mp ‹WellFoundedGT α› f
   exact ⟨n, le_antisymm (le_iSup _ _) (iSup_le fun i ↦
     (le_total i n).elim (f.2 ·) (fun h ↦ (hn _ h).ge))⟩
 
+-- Mathlib.Order.OrderIsoNat
 lemma WellFoundedLT.exists_eq_inf {α} [CompleteLattice α] [WellFoundedLT α]
     (f : ℕ →o αᵒᵈ) : ∃ i, f i = (⨅ i, f i : α) :=
   WellFoundedGT.exists_eq_sup (α := αᵒᵈ) f
 
+-- import Mathlib.Data.Set.Card
+-- import Mathlib.Data.SetLike.Fintype
+-- import Mathlib.RingTheory.Filtration
 lemma IsLocalRing.maximalIdeal_pow_card_smul_top_le {R M}
     [CommRing R] [IsLocalRing R] [IsNoetherianRing R] [AddCommGroup M] [Module R M]
     (N : Submodule R M) [Finite (M ⧸ N)] : maximalIdeal R ^ Nat.card (M ⧸ N) • ⊤ ≤ N := by
@@ -257,12 +273,14 @@ lemma IsLocalRing.maximalIdeal_pow_card_smul_top_le {R M}
     ← Submodule.map_smul'', ← le_bot_iff, Submodule.map_le_iff_le_comap, Submodule.comap_bot,
     Submodule.ker_mkQ] using this
 
+-- [Mathlib.RingTheory.Ideal.Operations]
 theorem Submodule.comap_smul_of_le_range {R M M'} [CommRing R] [AddCommGroup M]
     [AddCommGroup M'] [Module R M] [Module R M']
     (f : M →ₗ[R] M') (S : Submodule R M') (hS : S ≤ LinearMap.range f) (I : Ideal R) :
     (I • S).comap f = (I • S.comap f) ⊔ LinearMap.ker f := by
   rw [← comap_map_eq, map_smul'', Submodule.map_comap_eq, inf_eq_right.mpr hS]
 
+-- [Mathlib.RingTheory.Ideal.Operations]
 theorem Submodule.comap_smul_of_surjective {R M M'} [CommRing R] [AddCommGroup M]
     [AddCommGroup M'] [Module R M] [Module R M']
     (f : M →ₗ[R] M') (S : Submodule R M') (hS : Function.Surjective f) (I : Ideal R) :
@@ -310,8 +328,9 @@ lemma Pi.liftQuotientₗ_bijective {ι R M : Type*} [CommRing R] [AddCommGroup M
     smul_apply, Algebra.linearMap_apply, Ideal.Quotient.algebraMap_eq, zero_apply,
     Ideal.Quotient.eq_zero_iff_mem, smul_eq_mul, I.mul_mem_right _ hr, implies_true]
 
+-- #29756
 lemma Finsupp.comapDomain_surjective {α β M} [Zero M] [Finite β]
-    (f : α → β) (hf : Function.Injective f) :
+    {f : α → β} (hf : Function.Injective f) :
     Function.Surjective fun l : β →₀ M ↦ Finsupp.comapDomain f l hf.injOn := by
   classical
   intro x
@@ -320,6 +339,8 @@ lemma Finsupp.comapDomain_surjective {α β M} [Zero M] [Finite β]
   obtain ⟨g, hg⟩ := hf.hasLeftInverse
   refine ⟨Finsupp.equivFunOnFinite.symm (x ∘ g), Finsupp.ext <| fun a ↦ by simp [hg a]⟩
 
+-- import Mathlib.Topology.Algebra.Module.Compact
+-- import Mathlib.Topology.Algebra.Module.ModuleTopology
 lemma IsModuleTopology.compactSpace
     (R M : Type*) [CommRing R] [TopologicalSpace R] [AddCommGroup M]
     [Module R M] [TopologicalSpace M] [IsModuleTopology R M]
@@ -327,6 +348,8 @@ lemma IsModuleTopology.compactSpace
   letI : ContinuousAdd M := toContinuousAdd R M
   ⟨Submodule.isCompact_of_fg (Module.Finite.fg_top (R := R))⟩
 
+-- import Mathlib.RingTheory.Localization.AtPrime.Basic
+-- import Mathlib.RingTheory.Spectrum.Prime.Basic
 lemma disjoint_nonZeroDivisors_of_mem_minimalPrimes
     {R : Type*} [CommRing R] (p : Ideal R) (hp : p ∈ minimalPrimes R) :
     Disjoint (p : Set R) (nonZeroDivisors R) := by

@@ -13,13 +13,13 @@ import Mathlib.Tactic.NormNum.NatFactorial
 open scoped Nat
 open Real
 
--- upstream
+-- TODO upstream
 theorem strictMonoOn_Ici_nat_of_lt_succ {α : Type*} [Preorder α] {f : ℕ → α} {x : ℕ}
     (h : ∀ n, x ≤ n → f n < f (n + 1)) :
     StrictMonoOn f {i | x ≤ i} :=
   fun _ ha _ _ ↦ Nat.rel_of_forall_rel_succ_of_le_of_lt (· < ·) h ha
 
--- upstream
+-- TODO upstream
 theorem strictMonoOn_Ioi_nat_of_lt_succ {α : Type*} [Preorder α] {f : ℕ → α} {x : ℕ}
     (h : ∀ n, x < n → f n < f (n + 1)) :
     StrictMonoOn f (Set.Ioi x) :=

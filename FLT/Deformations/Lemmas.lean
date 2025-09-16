@@ -7,6 +7,10 @@ import Mathlib.Topology.Algebra.Module.ModuleTopology
 import Mathlib.Topology.Instances.Matrix
 import Mathlib.Topology.UniformSpace.DiscreteUniformity
 
+-- MOVE MOST
+
+-- import Mathlib.RingTheory.Ideal.Maximal
+-- import Mathlib.Topology.Algebra.LinearTopology
 lemma IsLinearTopology.exists_ideal_isMaximal_and_isOpen
     (R : Type*) [CommRing R] [TopologicalSpace R] [IsTopologicalRing R]
     [IsLinearTopology R R] [Nontrivial R] [T0Space R] :
@@ -16,6 +20,7 @@ lemma IsLinearTopology.exists_ideal_isMaximal_and_isOpen
   obtain ⟨J, hJ, hIJ⟩ := Ideal.exists_le_maximal I (by simpa [Ideal.eq_top_iff_one] using hI')
   exact ⟨J, hJ, AddSubgroup.isOpen_mono (H₁ := I.toAddSubgroup) (H₂ := J.toAddSubgroup) hIJ hI⟩
 
+-- [Mathlib.Topology.Algebra.Module.LinearMap]
 /-- The continuous group homomorphism on units induced by a `ContinuousMonoidHom`. -/
 @[simps!]
 def Units.mapₜ {M N : Type*} [Monoid M] [Monoid N] [TopologicalSpace M] [TopologicalSpace N]
@@ -310,6 +315,7 @@ instance ValuationSubring.smulCommClass
     SMulCommClass G O L where
   smul_comm g o l := smul_comm g o.1 l
 
+-- [Mathlib.GroupTheory.Index]
 theorem Subgroup.index_op {G : Type*} [Group G] (H : Subgroup G) :
     H.op.index = H.index := by
   trans (H.comap (MulEquiv.inv' G).symm.toMonoidHom).index
@@ -337,7 +343,7 @@ lemma IsTopologicalGroup.totallyBounded {G : Type*} [Group G] [TopologicalSpace 
   simp
 
 noncomputable
-instance Additive.instDistrbMulAction
+instance Additive.instDistribMulAction
     {G M : Type*} [Monoid G] [Monoid M] [MulDistribMulAction G M] :
     DistribMulAction G (Additive M) where
   smul g m := .ofMul (g • m.toMul)

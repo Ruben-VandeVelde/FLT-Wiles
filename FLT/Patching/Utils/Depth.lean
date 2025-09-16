@@ -5,6 +5,73 @@ import Mathlib.RingTheory.Spectrum.Prime.Topology
 import Mathlib.RingTheory.Support
 import Mathlib.RingTheory.TensorProduct.Free
 
+section MOVE
+-- [Mathlib.LinearAlgebra.Quotient.Defs]
+instance (R M : Type*) [Ring R] [AddCommGroup M] [Module R M] [Subsingleton M]
+    (N : Submodule R M) : Subsingleton (M ⧸ N) :=
+  Function.Surjective.subsingleton N.mkQ_surjective
+
+lemma isSMulRegular_iff_of_free {R M : Type*} [CommRing R] [AddCommGroup M] [Module R M]
+    [Module.Free R M] [Nontrivial M] {r : R} :
+    IsSMulRegular M r ↔ IsSMulRegular R r := by
+  let I := Module.Free.ChooseBasisIndex R M
+  let b : Module.Basis I R M := Module.Free.chooseBasis R M
+  constructor
+  · intro H m n h
+    have i := Nonempty.some (inferInstanceAs (Nonempty I))
+    have := @H (m • b i) (n • b i) (by simp_all [← mul_smul])
+    simpa using congr(b.repr $this i)
+  · intro H m n h
+    apply b.repr.injective
+    ext i
+    replace h := congr(b.repr $h i)
+    simp only [map_smul] at h
+    exact H h
+
+-- [Mathlib.LinearAlgebra.Matrix.NonsingularInverse, Mathlib.Algebra.Polynomial.Expand,
+-- Mathlib.RingTheory.Polynomial.Nilpotent]
+lemma RingTheory.Sequence.isWeaklyRegular_of_subsingleton
+    {R : Type*} (M : Type*) [CommRing R] [AddCommGroup M] [Module R M]
+    [Subsingleton R] (s : List R) : Sequence.IsWeaklyRegular M s :=
+  have : Subsingleton M := Module.subsingleton R M
+  -- TODO rename isWeaklyRegular_iff_Fin
+  (isWeaklyRegular_iff_Fin ..).mpr fun _ _ _ _ ↦ Subsingleton.elim _ _
+
+universe u v in
+open scoped Pointwise TensorProduct in
+lemma RingTheory.Sequence.isWeaklyRegular_of_free_aux
+    {R : Type u} {M : Type max u v} [CommRing R] [AddCommGroup M] [Module R M]
+    [Module.Free R M] [Nontrivial M] {s : List R} :
+      Sequence.IsWeaklyRegular M s ↔ Sequence.IsWeaklyRegular R s := by
+  generalize hn : s.length = n
+  induction n generalizing R M with
+  | zero => simp_all
+  | succ n IH =>
+    cases s with
+    | nil => simp at hn
+    | cons x xs =>
+    let e : QuotSMulTop x R ≃ₗ[R] R ⧸ Ideal.span {x} := Submodule.quotEquivOfEq _ _
+      (by rw [← Submodule.ideal_span_singleton_smul]; simp)
+    let e' := QuotSMulTop.equivQuotTensor x M
+    rw [Sequence.isWeaklyRegular_cons_iff, Sequence.isWeaklyRegular_cons_iff,
+      e.isWeaklyRegular_congr, e'.isWeaklyRegular_congr,
+      ← isWeaklyRegular_map_algebraMap_iff (R ⧸ Ideal.span {x}),
+      ← isWeaklyRegular_map_algebraMap_iff (R := R) (R ⧸ Ideal.span {x})]
+    refine and_congr isSMulRegular_iff_of_free ?_
+    cases subsingleton_or_nontrivial (R ⧸ Ideal.span {x})
+    · simp [RingTheory.Sequence.isWeaklyRegular_of_subsingleton]
+    exact IH (by simp_all)
+
+lemma RingTheory.Sequence.isWeaklyRegular_of_free
+    {R M : Type*} [CommRing R] [AddCommGroup M] [Module R M]
+    [Module.Free R M] [Nontrivial M] {s : List R} :
+      Sequence.IsWeaklyRegular M s ↔ Sequence.IsWeaklyRegular R s := by
+  let b := Module.Free.chooseBasis R M
+  have : Nontrivial R := Module.nontrivial R M
+  rw [b.repr.isWeaklyRegular_congr, isWeaklyRegular_of_free_aux]
+
+end MOVE
+
 variable (R S M : Type*) [CommRing R] [CommRing S] [IsLocalRing R] [IsLocalRing S]
 variable [AddCommGroup M] [Module R M] [Module S M] [Algebra R S] [IsScalarTower R S M]
 variable [IsLocalHom (algebraMap R S)]
@@ -22,9 +89,6 @@ def Module.depth : ℕ∞ :=
   sSup { List.length s | (s : List R)
     (_ : Sequence.IsWeaklyRegular M s)
     (_ : ∀ r ∈ s, r ∈ maximalIdeal R) }
-
-instance [Subsingleton M] (N : Submodule R M) : Subsingleton (M ⧸ N) :=
-  Function.Surjective.subsingleton N.mkQ_surjective
 
 lemma Module.length_le_depth (s : List R)
     (hs : Sequence.IsWeaklyRegular M s) (hs' : ∀ r ∈ s, r ∈ maximalIdeal R) :
@@ -139,62 +203,6 @@ lemma Module.depth_le_dim_annihilator
 lemma Module.depth_le_dim [Nontrivial M] [Module.Finite R M] :
     .some (Module.depth R M) ≤ ringKrullDim R :=
   (depth_le_dim_annihilator R M).trans (ringKrullDim_quotient_le _)
-
-lemma isSMulRegular_iff_of_free {R M : Type*} [CommRing R] [AddCommGroup M] [Module R M]
-    [Module.Free R M] [Nontrivial M] {r : R} :
-    IsSMulRegular M r ↔ IsSMulRegular R r := by
-  let I := Module.Free.ChooseBasisIndex R M
-  let b : Module.Basis I R M := Module.Free.chooseBasis R M
-  constructor
-  · intro H m n h
-    have i := Nonempty.some (inferInstanceAs (Nonempty I))
-    have := @H (m • b i) (n • b i) (by simp_all [← mul_smul])
-    simpa using congr(b.repr $this i)
-  · intro H m n h
-    apply b.repr.injective
-    ext i
-    replace h := congr(b.repr $h i)
-    simp only [map_smul] at h
-    exact H h
-
-lemma RingTheory.Sequence.isWeaklyRegular_of_subsingleton
-    {R : Type*} (M : Type*) [CommRing R] [AddCommGroup M] [Module R M]
-    [Subsingleton R] (s : List R) : Sequence.IsWeaklyRegular M s :=
-  have : Subsingleton M := Module.subsingleton R M
-  (isWeaklyRegular_iff_Fin ..).mpr fun _ _ _ _ ↦ Subsingleton.elim _ _
-
-universe u v in
-open scoped Pointwise TensorProduct in
-lemma RingTheory.Sequence.isWeaklyRegular_of_free_aux
-    {R : Type u} {M : Type max u v} [CommRing R] [AddCommGroup M] [Module R M]
-    [Module.Free R M] [Nontrivial M] {s : List R} :
-      Sequence.IsWeaklyRegular M s ↔ Sequence.IsWeaklyRegular R s := by
-  generalize hn : s.length = n
-  induction n generalizing R M with
-  | zero => simp_all
-  | succ n IH =>
-    cases s with
-    | nil => simp at hn
-    | cons x xs =>
-    let e : QuotSMulTop x R ≃ₗ[R] R ⧸ Ideal.span {x} := Submodule.quotEquivOfEq _ _
-      (by rw [← Submodule.ideal_span_singleton_smul]; simp)
-    let e' := QuotSMulTop.equivQuotTensor x M
-    rw [Sequence.isWeaklyRegular_cons_iff, Sequence.isWeaklyRegular_cons_iff,
-      e.isWeaklyRegular_congr, e'.isWeaklyRegular_congr,
-      ← isWeaklyRegular_map_algebraMap_iff (R ⧸ Ideal.span {x}),
-      ← isWeaklyRegular_map_algebraMap_iff (R := R) (R ⧸ Ideal.span {x})]
-    refine and_congr isSMulRegular_iff_of_free ?_
-    cases subsingleton_or_nontrivial (R ⧸ Ideal.span {x})
-    · simp [RingTheory.Sequence.isWeaklyRegular_of_subsingleton]
-    exact IH (by simp_all)
-
-lemma RingTheory.Sequence.isWeaklyRegular_of_free
-    {R M : Type*} [CommRing R] [AddCommGroup M] [Module R M]
-    [Module.Free R M] [Nontrivial M] {s : List R} :
-      Sequence.IsWeaklyRegular M s ↔ Sequence.IsWeaklyRegular R s := by
-  let b := Module.Free.chooseBasis R M
-  have : Nontrivial R := Module.nontrivial R M
-  rw [b.repr.isWeaklyRegular_congr, isWeaklyRegular_of_free_aux]
 
 lemma Module.depth_le_of_free [Module.Free R M] : Module.depth R R ≤ Module.depth R M := by
   cases subsingleton_or_nontrivial M
